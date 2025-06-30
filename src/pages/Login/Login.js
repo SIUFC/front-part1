@@ -17,42 +17,50 @@ const Login = ({ onNavigateToCadastro, onNavigateToNivel }) => {
   };
 
   const handleLogin = async (event) => {
-    event.preventDefault();
-    setError('');
+  event.preventDefault();
+  setError('');
 
-    if (!email || !senha) {
-      setError('PREENCHA OS CAMPOS DE E-MAIL E SENHA!');
-      return;
+  if (!email || !senha) {
+    setError('PREENCHA OS CAMPOS DE E-MAIL E SENHA!');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await axios.post(
+  'http://localhost:5037/Login/login',
+  {
+    Email: email,
+    Password: senha, 
+  },
+  {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }
+);
+
+
+    console.log('Login bem-sucedido:', response.data);
+
+    const { token } = response.data;
+    localStorage.setItem('authToken', token);
+
+    onNavigateToNivel();
+  } catch (err) {
+    console.error('Erro no login:', err);
+    if (err.response) {
+      setError(err.response.data?.error || 'E-MAIL OU SENHA INVÁLIDOS');
+    } else if (err.request) {
+      setError('NÃO FOI POSSÍVEL SE CONECTAR AO SERVIDOR. VERIFIQUE SUA CONEXÃO.');
+    } else {
+      setError('ERRO INESPERADO. TENTE NOVAMENTE...');
     }
-
-    setLoading(true);
-
-    try {
-      const response = await axios.post('https://localhost:', {
-        email: email,
-        senha: senha,
-      });
-
-      console.log('Login bem-sucedido:', response.data);
-      
-      const { token } = response.data;
-      localStorage.setItem('authToken', token);
-
-      onNavigateToNivel();
-
-    } catch (err) {
-      console.error('Erro no login:', err);
-      if (err.response) {
-        setError(err.response.data.message || 'E-MAIL OU SENHA INVÁLIDOS');
-      } else if (err.request) {
-        setError('NÃO FOI POSSÍVEL SE CONECTAR AO SERVIDOR. VERIFIQUE SUA CONEXÃO.');
-      } else {
-        setError('ERRO INESPERADO. TENTE NOVAMENTE...');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="login-container">
